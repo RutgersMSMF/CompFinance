@@ -2,7 +2,6 @@ import numpy as np
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 
-
 N = 1000
 
 # Box Muller Method
@@ -42,7 +41,7 @@ def Exponential(x, Lambda):
 # Acceptance Rejection Algorithm
 def acceptanceRejection(Lambda):
 
-    arr =[]
+    arr = []
     M = 1.01
     beta = 1 / Lambda
     for i in range(N):
@@ -70,24 +69,6 @@ def numpyGenerator():
 
     return rv
 
-# Chi Squared
-def chi():
-
-    mu = 0
-    sigma = 1
-    arr = np.zeros(N)
-
-    # Step One: Generate Samples for X
-    rvx = np.random.default_rng().normal(mu, sigma, N)
-
-    # Step Two: Generate Samples for Y
-    rvy = np.random.default_rng().normal(mu, sigma, N)
-
-    for i in range(N):
-        arr[i] = rvx[i]**2 + rvy[i]**2
-
-    return arr
-
 # QQ Plot
 def plot():
 
@@ -104,10 +85,6 @@ def plot():
     # Call Numpy Generator
     sm.qqplot(numpyGenerator(), line = "45")
     plt.title("Numpy Gaussian Generator")
-
-    # Call Chi Squared
-    sm.qqplot(chi(), line = "45")
-    plt.title("Chi Squared")
 
     plt.show()
     

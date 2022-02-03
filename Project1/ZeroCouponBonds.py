@@ -4,27 +4,28 @@ from scipy.interpolate import CubicSpline
 
 SwapRates = [0.0325, 0.0375, 0.04, 0.0425, 0.04375, 0.045, 0.04625, 0.0475, 0.04875, 0.05, 0.05125, 0.0525]
 
-def moneyMarket(index, rate):
+def moneyMarket(index):
 
     s = 1
     i = 0
     while i < index:
 
-        s = s * (1 + rate)
+        s = s * (1 + SwapRates[i])
         i+=1
 
     return s
 
-
+# Return Zero Coupon Bond Prices
 def ZCB():
 
     zcb = []
 
     for i in range(len(SwapRates)):
-        zcb.append(1 / moneyMarket(i, SwapRates[i]))
+        zcb.append(moneyMarket(i) / moneyMarket(len(SwapRates)))
 
     return zcb
 
+# Return Zero Coupon Bond Yields
 def Yields(bonds):
 
     yields = []
