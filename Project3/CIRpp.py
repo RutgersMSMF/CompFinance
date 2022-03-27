@@ -89,8 +89,8 @@ def plot():
     ax1.legend(loc = 'best')
     ax1.set_title("CIR Process")
 
-    ax2.plot(euler_log, label = 'Euler Log')
-    ax2.plot(milstein_log, label = 'Milstein Log')
+    ax2.plot(np.exp(euler_log), label = 'Euler Log')
+    ax2.plot(np.exp(milstein_log), label = 'Milstein Log')
     ax2.legend(loc = 'best')
     ax2.set_title("CIR Process")
 
