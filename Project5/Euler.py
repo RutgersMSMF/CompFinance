@@ -2,107 +2,111 @@ import numpy as np
 from numba import jit
 import matplotlib.pyplot as plt 
 
-N = 1000
-B = np.linspace(1, 0, N)
-F = np.linspace(0, 1, N)
-dt = B[1] - B[0]
+N = 100
 
 @jit(nopython = True)
-def f(t):
+def f_prime(lv, t):
 
-    return -0.5 * (1 - t)
+    return (lv / (1 - t)) + 1
 
-@jit(nopython = True)
-def f_prime(t):
-
-    return (f(t) / (1 - t)) + 1
-
-@jit(nopython = True)
-def explicit_euler(initial_value, I):
+@jit(nopython = True, parallel = True)
+def explicit_euler(t, initial_value):
 
     arr = np.zeros(N)
+    dt = np.abs(t[1] - t[0])
 
     for i in range(N):
 
         if i == 0:
+
             arr[i] = initial_value
 
         else:
-            arr[i] = I[i - 1] + dt * f(I[i - 1])
 
-    return arr
+            arr[i] = arr[i - 1] + dt * f_prime(arr[i - 1], t[i])
+
+    return arr.T
 
 @jit(nopython = True)
-def fixed_point_iteration(X, Y):
+def fixed_point_iteration(X, t, dt):
 
     i = 0
-    max_itr = 1000
+    Y = X
+    max_itr = 100
     err_tol = 10**-8
+
     while i < max_itr:
 
-        X = Y
-        Y = X + dt * f(Y)
+        last = Y
+        Y = X + dt * f_prime(X, t)
         i+=1
 
-        if np.abs(X - Y) < err_tol:
+        if np.abs(Y - last) < err_tol:
             return Y
 
-    print("Convergence not reached in 1000 Iterations")
+    print("Convergence not reached in 100 Iterations")
     return 0
 
-@jit(nopython = True)
-def implicit_euler(initial_value, I):
+@jit(nopython = True, parallel = True)
+def implicit_euler(t, initial_value):
 
     arr = np.zeros(N)
+    dt = np.abs(t[1] - t[0])
 
     for i in range(N):
 
         if i == 0:
+
             arr[i] = initial_value
 
         else:
-            temp = I[i - 1] + dt * f(I[i - 1])
-            arr[i] = fixed_point_iteration(arr[i-1], temp)
 
-    return arr
+            arr[i]= fixed_point_iteration(arr[i - 1], t[i], dt)
+
+    return arr.T
 
 def plot():
 
-    # Backwards Iteration
-    initial_value = 0
-    explicit_backwards = explicit_euler(initial_value, B)
+    # Initial Values
+    initial_value = np.linspace(-1, 1, 25)
 
-    # Forward Iteration
-    initial_value = -1/2
-    explicit_forward = explicit_euler(initial_value, F)
+    # Forward Iteration (0 => 1)
+    a = 1e-8
+    b = 1 - 1e-8
+    forward = np.linspace(a, b, N)
 
-    # Explicit Euler Method
+    # Backwards Iteration (1 => 0)
+    a = 1 - 1e-8
+    b = 1e-8
+    backward = np.linspace(a, b, N)
+
+    # Create Figure Object
     fig, (ax1, ax2) = plt.subplots(1, 2)
-    fig.suptitle('Explicit Euler Method')
+    fig.suptitle('Euler Method')
 
-    ax1.plot(explicit_backwards)
-    ax1.set_title("Backward Iteration")
+    # Call Euler Forward
+    for i in range(len(initial_value)):
 
-    ax2.plot(explicit_forward)
-    ax2.set_title("Forward Iteration")
+        explicit_forward = explicit_euler(forward, initial_value[i])
+        implicit_forward = implicit_euler(forward, initial_value[i])
 
-    # Backwards Iteration
-    initial_value = 0
-    implicit_backwards = implicit_euler(initial_value, B)
+        ax1.plot(explicit_forward)
+        ax1.plot(implicit_forward)
 
-    # Forward Iteration
-    initial_value = -1/2
-    implicit_forward = implicit_euler(initial_value, F)
+    ax1.set_title("Forward Iteration: t = 0")
+    ax1.set_ylim(-5, 5)
 
-    # Explicit Euler Method
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    fig.suptitle('Implicit Euler Method')
+    # Call Euler Backward
+    for i in range(len(initial_value)):
 
-    ax1.plot(implicit_backwards)
-    ax1.set_title("Backward Iteration")
+        explicit_backward = explicit_euler(backward, initial_value[i])
+        implicit_backward = implicit_euler(backward, initial_value[i])
 
-    ax2.plot(implicit_forward)
-    ax2.set_title("Forward Iteration")
+        ax2.plot(explicit_backward)
+        ax2.plot(implicit_backward)
+    
+    ax2.set_title("Backward Iteration: t = 1")
+    ax2.set_ylim(-5, 5)
 
     plt.show()
 
