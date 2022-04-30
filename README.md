@@ -1,4 +1,4 @@
-# CompFinance 
+# Computational Finance 
 
 Classwork from Rutgers Computational Finance 623. 
 
